@@ -73,7 +73,7 @@ class _MainMenuState extends State<MainMenu> {
                 style: ElevatedButton.styleFrom(
                   primary: const Color.fromRGBO(25, 103, 210, 1),
                 ),
-                child: const Text("Tvillinger!", style: TextStyle(fontSize: 44),),
+                child: const Text("Tvillingetal!", style: TextStyle(fontSize: 44),),
                 onPressed: () {
                   Navigator.push(
                     context,

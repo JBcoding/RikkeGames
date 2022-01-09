@@ -60,8 +60,8 @@ class _NumberPairGameState extends State<NumberPairGame> {
       highScoreKey = "number_10_high_score";
       pieceWidth = 55;
     } else {
-      title = "Matematik - Tvillinger - Et spil af Rikke Bjørn";
-      description = "Find tvillinger! Kan du slå din rekord?";
+      title = "Matematik - Tvillingetal - Et spil af Rikke Bjørn";
+      description = "Find tvillingetal! Kan du slå din rekord?";
       highScoreKey = "number_twin_high_score";
       pieceWidth = 130;
     }
