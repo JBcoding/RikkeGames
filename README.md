@@ -1,6 +1,6 @@
-# rikkegames
+# Rikke Games
 
-A new Flutter application.
+A new Flutter application, used for math education
 
 ## Getting Started
 
