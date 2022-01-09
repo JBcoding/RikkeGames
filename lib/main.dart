@@ -16,22 +16,22 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Matematik - tal tvillinger',
+      title: "Matematik - 10'er venner - Et spil af Rikke Bjørn",
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const NumberTwins(title: 'Matematik - tal tvillinger (Et spil fra Rikke B)'),
+      home: const NumberPairGame(title: "Matematik - 10'er venner - Et spil af Rikke Bjørn"),
     );
   }
 }
 
-class NumberTwins extends StatefulWidget {
-  const NumberTwins({Key? key, required this.title}) : super(key: key);
+class NumberPairGame extends StatefulWidget {
+  const NumberPairGame({Key? key, required this.title}) : super(key: key);
 
   final String title;
 
   @override
-  State<NumberTwins> createState() => _NumberTwinsState();
+  State<NumberPairGame> createState() => _NumberPairGameState();
 }
 
 class NumberTwinsBoardElement {
@@ -54,14 +54,14 @@ class NumberTwinsBoardElement {
   }
 }
 
-class _NumberTwinsState extends State<NumberTwins> {
+class _NumberPairGameState extends State<NumberPairGame> {
   List<List<NumberTwinsBoardElement>> board = List.empty();
   NumberTwinsBoardElement? selectedElement;
   int points = 0;
   int lastPairTime = 0;
   SharedPreferences? prefs;
 
-  _NumberTwinsState() {
+  _NumberPairGameState() {
     _setupPrefs();
     _setupGame();
   }
@@ -138,9 +138,9 @@ class _NumberTwinsState extends State<NumberTwins> {
     });
     if (_isDone()) {
       if (prefs != null) {
-        int highScore = (prefs!.getInt('number_twin_high_score') ?? 0);
+        int highScore = (prefs!.getInt('number_10_high_score') ?? 0);
         highScore = max(points, highScore);
-        await prefs!.setInt('number_twin_high_score', highScore);
+        await prefs!.setInt('number_10_high_score', highScore);
       }
       _playCompletionAnimation();
     }
@@ -173,14 +173,14 @@ class _NumberTwinsState extends State<NumberTwins> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             const Text(
-              'Vælg 2 tal så deres sum tilsammen er 10:',
+              "Find 10'er venner! Kan du slå din rekord?",
               style: TextStyle(fontSize: 30),
             ),
             Container(
               height: 40,
             ),
             Text(
-              'Points: $points   (bedste: ${prefs?.getInt('number_twin_high_score') ?? 0})',
+              'Points: $points   (bedste: ${prefs?.getInt('number_10_high_score') ?? 0})',
               style: const TextStyle(fontSize: 30),
             ),
             Container(
