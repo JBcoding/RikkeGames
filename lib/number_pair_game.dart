@@ -41,12 +41,26 @@ class NumberTwinsBoardElement {
   }
 }
 
-class _NumberPairGameState extends State<NumberPairGame> {
+class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProviderStateMixin {
   List<List<NumberTwinsBoardElement>> board = List.empty();
   NumberTwinsBoardElement? selectedElement;
   int points = 0;
   int lastPairTime = 0;
   SharedPreferences? prefs;
+  final JiggleController celebrationJiggleController = JiggleController();
+
+  bool celebrationRunning = false;
+  late final AnimationController _offsetCelebrationController = AnimationController(
+    duration: const Duration(seconds: 3),
+    vsync: this,
+  );
+  late final Animation<Offset> _offsetCelebrationAnimation = Tween<Offset>(
+    begin: const Offset(0.0, -2.5),
+    end: Offset.zero,
+  ).animate(CurvedAnimation(
+    parent: _offsetCelebrationController,
+    curve: Curves.decelerate,
+  ));
 
   late String title;
   late String description;
@@ -85,6 +99,12 @@ class _NumberPairGameState extends State<NumberPairGame> {
   }
 
   void _setupGame(NumberPairGameTypes type) {
+    for (var column in board) {
+      for (var element in column) {
+        element.jiggleControllerErrorAnimation.dispose();
+        element.jiggleControllerCompletionAnimation.dispose();
+      }
+    }
     if (type == NumberPairGameTypes.tenGame) {
       List<int> numbers = List.generate(6 * 3, (index) => Random().nextInt(9) + 1);
       numbers.addAll(List.generate(numbers.length, (index) => 10 - numbers[index]));
@@ -101,6 +121,10 @@ class _NumberPairGameState extends State<NumberPairGame> {
     selectedElement = null;
     points = 0;
     lastPairTime = DateTime.now().millisecondsSinceEpoch;
+    celebrationRunning = false;
+    if (celebrationJiggleController.isJiggling) {
+      celebrationJiggleController.toggle();
+    }
   }
 
   void _reload() {
@@ -129,10 +153,19 @@ class _NumberPairGameState extends State<NumberPairGame> {
 
   Future<void> _turnOffToggleInTheFuture(NumberTwinsBoardElement element) async {
     await Future.delayed(const Duration(seconds: 5));
-    element.jiggleControllerCompletionAnimation.toggle();
+    if (board.any((column) => column.any((el) => el == element))) {
+      // If not on the board, the controller have already been disposed
+      element.jiggleControllerCompletionAnimation.toggle();
+    }
   }
 
   Future<void> _playCompletionAnimation() async {
+    setState(() {
+      celebrationRunning = true;
+    });
+    celebrationJiggleController.toggle();
+    _offsetCelebrationController.reset();
+    _offsetCelebrationController.animateTo(1.0);
     while (_isDone()) {
       NumberTwinsBoardElement element = _getRandomBoardElement();
       while (element.jiggleControllerCompletionAnimation.isJiggling) {
@@ -206,56 +239,117 @@ class _NumberPairGameState extends State<NumberPairGame> {
             Container(
               height: 40,
             ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: board.map((column) => Column(
-                children: column.map((element) =>
-                    Jiggle(
-                      jiggleController: element.jiggleControllerCompletionAnimation,
-                      extent: 360,
-                      duration: const Duration(milliseconds: 5000),
-                      child: Jiggle(
-                        jiggleController: element.jiggleControllerErrorAnimation,
-                        extent: 25,
-                        duration: const Duration(milliseconds: 300),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: FittedBox(
-                            child: SizedBox(
-                              width: pieceWidth,
-                              child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                  primary: element.getColor(selectedElement),
+            Stack(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: board.map((column) => Column(
+                    children: column.map((element) =>
+                        Jiggle(
+                          jiggleController: element.jiggleControllerCompletionAnimation,
+                          extent: 360,
+                          duration: const Duration(milliseconds: 5000),
+                          child: Jiggle(
+                            jiggleController: element.jiggleControllerErrorAnimation,
+                            extent: 25,
+                            duration: const Duration(milliseconds: 300),
+                            child: Padding(
+                              padding: const EdgeInsets.all(4.0),
+                              child: FittedBox(
+                                child: SizedBox(
+                                  width: pieceWidth,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      primary: element.getColor(selectedElement),
+                                    ),
+                                    child: Text(element.showValue, style: const TextStyle(fontSize: 44),),
+                                    onPressed: () async {
+                                      if (element.used) {
+                                        return;
+                                      }
+                                      if (selectedElement == element) {
+                                        setState(() {
+                                          selectedElement = null;
+                                        });
+                                      } else if (selectedElement == null) {
+                                        setState(() {
+                                          selectedElement = element;
+                                        });
+                                      } else {
+                                        if (element.value + selectedElement!.value == 10) {
+                                          _validMove(element);
+                                        } else {
+                                          _invalidMove(element);
+                                        }
+                                      }
+                                    },
+                                  ),
                                 ),
-                                child: Text(element.showValue, style: const TextStyle(fontSize: 44),),
-                                onPressed: () async {
-                                  if (element.used) {
-                                    return;
-                                  }
-                                  if (selectedElement == element) {
-                                    setState(() {
-                                      selectedElement = null;
-                                    });
-                                  } else if (selectedElement == null) {
-                                    setState(() {
-                                      selectedElement = element;
-                                    });
-                                  } else {
-                                    if (element.value + selectedElement!.value == 10) {
-                                      _validMove(element);
-                                    } else {
-                                      _invalidMove(element);
-                                    }
-                                  }
-                                },
                               ),
                             ),
                           ),
                         ),
+                    ).toList(),
+                  )).toList(),
+                ),
+                celebrationRunning ? SlideTransition(
+                  position: _offsetCelebrationAnimation,
+                  child: Row(
+                    mainAxisAlignment : MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Jiggle(
+                        jiggleController: celebrationJiggleController,
+                        extent: 20,
+                        duration: const Duration(milliseconds: 800),
+                        child: const Image(
+                          image: AssetImage('assets/img/thumbs_up.png'),
+                          height: 370,
+                          width: 370,
+                        ),
                       ),
-                    ),
-                ).toList(),
-              )).toList(),
+                    ],
+                  ),
+                ) : const SizedBox(width: 0, height: 0,),
+                celebrationRunning ? SlideTransition(
+                  position: _offsetCelebrationAnimation,
+                  child: Row(
+                    mainAxisAlignment : MainAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      Transform.rotate(
+                        angle: -pi / 5,
+                        child: Jiggle(
+                          jiggleController: celebrationJiggleController,
+                          extent: 30,
+                          duration: const Duration(milliseconds: 1000),
+                          child: const Image(
+                            image: AssetImage('assets/img/cheers.png'),
+                            height: 370,
+                            width: 370,
+                          ),
+                        ),
+                      ),
+                      Container(
+                        width: 180,
+                      ),
+                      Transform.rotate(
+                        angle: pi / 5,
+                        child: Jiggle(
+                          jiggleController: celebrationJiggleController,
+                          extent: 30,
+                          duration: const Duration(milliseconds: 1000),
+                          child: const Image(
+                            image: AssetImage('assets/img/cheers.png'),
+                            height: 370,
+                            width: 370,
+                          ),
+                        ),
+                      ),
+                    ],
+                  )
+                ): const SizedBox(width: 0, height: 0,),
+              ]
             ),
           ],
         ),
