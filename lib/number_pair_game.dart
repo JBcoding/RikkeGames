@@ -303,7 +303,7 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
                         extent: 20,
                         duration: const Duration(milliseconds: 800),
                         child: const Image(
-                          image: AssetImage('assets/img/thumbs_up.png'),
+                          image: AssetImage('assets/img/cheer_2.png'),
                           height: 370,
                           width: 370,
                         ),
@@ -324,7 +324,7 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
                           extent: 30,
                           duration: const Duration(milliseconds: 1000),
                           child: const Image(
-                            image: AssetImage('assets/img/cheers.png'),
+                            image: AssetImage('assets/img/cheer_3.png'),
                             height: 370,
                             width: 370,
                           ),
@@ -340,7 +340,7 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
                           extent: 30,
                           duration: const Duration(milliseconds: 1000),
                           child: const Image(
-                            image: AssetImage('assets/img/cheers.png'),
+                            image: AssetImage('assets/img/cheer_1.png'),
                             height: 370,
                             width: 370,
                           ),
