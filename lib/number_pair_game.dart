@@ -46,6 +46,7 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
   NumberTwinsBoardElement? selectedElement;
   int points = 0;
   int lastPairTime = 0;
+  bool hasFirstMoveBeenMade = false;
   SharedPreferences? prefs;
   final JiggleController celebrationJiggleController = JiggleController();
 
@@ -119,6 +120,7 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
           List.generate(6, (j) => NumberTwinsBoardElement(numbers[i * 6 + j], _getTwinGameShowString(numbers[i * 6 + j]))));
     }
     selectedElement = null;
+    hasFirstMoveBeenMade = false;
     points = 0;
     lastPairTime = DateTime.now().millisecondsSinceEpoch;
     celebrationRunning = false;
@@ -135,7 +137,21 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
 
   int _calculatePoints() {
     int millisSince = DateTime.now().millisecondsSinceEpoch - lastPairTime;
-    if (millisSince < 3000) {
+    if (millisSince < 100) {
+      return 12;
+    } else if (millisSince < 250) {
+      return 11;
+    } else if (millisSince < 500) {
+      return 10;
+    } else if (millisSince < 750) {
+      return 9;
+    } else if (millisSince < 1000) {
+      return 8;
+    } else if (millisSince < 1500) {
+      return 7;
+    } else if (millisSince < 2000) {
+      return 6;
+    } else if (millisSince < 3000) {
       return 5;
     } else if (millisSince < 5000) {
       return 4;
@@ -264,6 +280,10 @@ class _NumberPairGameState extends State<NumberPairGame> with SingleTickerProvid
                                     ),
                                     child: Text(element.showValue, style: const TextStyle(fontSize: 44),),
                                     onPressed: () async {
+                                      if (!hasFirstMoveBeenMade) {
+                                        hasFirstMoveBeenMade = true;
+                                        lastPairTime = DateTime.now().millisecondsSinceEpoch;
+                                      }
                                       if (element.used) {
                                         return;
                                       }
